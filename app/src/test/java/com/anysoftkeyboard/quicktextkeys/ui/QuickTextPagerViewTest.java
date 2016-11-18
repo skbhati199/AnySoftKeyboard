@@ -26,11 +26,6 @@ public class QuickTextPagerViewTest {
     }
 
     @Test
-    public void testGetPager() {
-        Assert.assertNotNull(mUnderTest.getPagerView());
-    }
-
-    @Test
     public void setOnKeyboardActionListener() throws Exception {
         OnKeyboardActionListener listener = Mockito.mock(OnKeyboardActionListener.class);
 

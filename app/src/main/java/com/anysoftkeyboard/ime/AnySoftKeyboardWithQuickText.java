@@ -5,8 +5,10 @@ import android.text.TextUtils;
 import android.view.View;
 
 import com.anysoftkeyboard.keyboards.Keyboard;
+import com.anysoftkeyboard.keyboards.views.AnyKeyboardView;
 import com.anysoftkeyboard.quicktextkeys.QuickTextKey;
 import com.anysoftkeyboard.quicktextkeys.QuickTextKeyFactory;
+import com.anysoftkeyboard.quicktextkeys.ui.QuickTextPagerView;
 import com.anysoftkeyboard.quicktextkeys.ui.QuickTextViewFactory;
 import com.menny.android.anysoftkeyboard.R;
 
@@ -14,7 +16,6 @@ public abstract class AnySoftKeyboardWithQuickText extends AnySoftKeyboardClipbo
 
     private boolean mDoNotFlipQuickTextKeyAndPopupFunctionality;
     private String mOverrideQuickTextText = null;
-
 
     @Override
     protected void onLoadSettingsRequired(SharedPreferences sharedPreferences) {
@@ -51,9 +52,33 @@ public abstract class AnySoftKeyboardWithQuickText extends AnySoftKeyboardClipbo
     }
 
     private void switchToQuickTextKeyboard() {
-        View quickTextsLayout = getInputViewContainer().findViewById(R.id.quick_text_pager_root);
-        if (quickTextsLayout == null) {
-            quickTextsLayout = QuickTextViewFactory.createQuickTextView(getApplicationContext(), this, )
+        cleanUpQuickTextKeyboard(false);
+        AnyKeyboardView standardKeyboardView = (AnyKeyboardView) getInputViewContainer().findViewById(R.id.AnyKeyboardMainView);
+        final int height = standardKeyboardView.getHeight();
+        standardKeyboardView.setVisibility(View.GONE);
+        QuickTextPagerView quickTextsLayout = QuickTextViewFactory.createQuickTextView(getApplicationContext(), getInputViewContainer(), height);
+        getInputViewContainer().addView(quickTextsLayout);
+    }
+
+    private boolean cleanUpQuickTextKeyboard(boolean reshowStandardKeyboard) {
+        QuickTextPagerView quickTextsLayout = (QuickTextPagerView) getInputViewContainer().findViewById(R.id.quick_text_pager_root);
+        if (quickTextsLayout != null) {
+            getInputViewContainer().removeView(quickTextsLayout);
+            quickTextsLayout.onViewNotRequired();
+            if (reshowStandardKeyboard) {
+                AnyKeyboardView standardKeyboardView = (AnyKeyboardView) getInputViewContainer().findViewById(R.id.AnyKeyboardMainView);
+                standardKeyboardView.setVisibility(View.VISIBLE);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public void hideWindow() {
+        if (!cleanUpQuickTextKeyboard(true)) {
+            super.hideWindow();
         }
     }
 }
