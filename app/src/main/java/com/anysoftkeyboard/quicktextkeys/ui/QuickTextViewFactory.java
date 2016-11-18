@@ -11,7 +11,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 
-import com.anysoftkeyboard.keyboards.views.MiniKeyboardActionListener;
+import com.anysoftkeyboard.keyboards.views.OnKeyboardActionListener;
 import com.anysoftkeyboard.quicktextkeys.HistoryQuickTextKey;
 import com.anysoftkeyboard.quicktextkeys.QuickTextKey;
 import com.anysoftkeyboard.quicktextkeys.QuickTextKeyFactory;
@@ -23,11 +23,10 @@ import java.util.List;
 
 public class QuickTextViewFactory {
 
-    public static View createQuickTextView(final Context context, final MiniKeyboardActionListener keyboardActionListener, int tabTitleTextSize, ColorStateList tabTitleTextColor) {
+    public static View createQuickTextView(final Context context, final OnKeyboardActionListener keyboardActionListener, int tabTitleTextSize, ColorStateList tabTitleTextColor) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        @SuppressLint("InflateParams") View rootView = inflater.inflate(R.layout.quick_text_popup_root_view, null, false);
-        FrameKeyboardViewClickListener frameKeyboardViewClickListener = new FrameKeyboardViewClickListener(keyboardActionListener);
-        frameKeyboardViewClickListener.registerOnViews(rootView);
+        @SuppressLint("InflateParams") QuickTextPagerView rootView = (QuickTextPagerView) inflater.inflate(R.layout.quick_text_popup_root_view, null, false);
+        rootView.setOnKeyboardActionListener(keyboardActionListener);
         final List<QuickTextKey> list = new ArrayList<>();
         //always starting with Recent
         final HistoryQuickTextKey historyQuickTextKey = new HistoryQuickTextKey(context);
@@ -36,8 +35,6 @@ public class QuickTextViewFactory {
         list.addAll(QuickTextKeyFactory.getOrderedEnabledQuickKeys(context));
 
         final QuickTextUserPrefs quickTextUserPrefs = new QuickTextUserPrefs(context);
-
-        keyboardActionListener.setInOneShot(quickTextUserPrefs.isOneShotQuickTextPopup());
 
         PagerAdapter adapter = new QuickKeysKeyboardPagerAdapter(context, list, new RecordHistoryKeyboardActionListener(historyQuickTextKey, keyboardActionListener));
 
@@ -50,7 +47,7 @@ public class QuickTextViewFactory {
             }
         };
         int startPageIndex = quickTextUserPrefs.getStartPageIndex(list);
-        ViewPager pager = (ViewPager) rootView.findViewById(R.id.quick_text_keyboards_pager);
+        ViewPager pager = rootView.getPagerView();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1) {
             setupSlidingTab(rootView, tabTitleTextSize, tabTitleTextColor, pager, adapter, onPageChangeListener, startPageIndex);
         } else {
@@ -70,7 +67,7 @@ public class QuickTextViewFactory {
         pager.setOnPageChangeListener(onPageChangeListener);
     }
 
-    protected static void setupSlidingTab(View rootView, int tabTitleTextSize, ColorStateList tabTitleTextColor, ViewPager pager, PagerAdapter adapter, ViewPager.OnPageChangeListener onPageChangeListener, int startIndex) {
+    private static void setupSlidingTab(View rootView, int tabTitleTextSize, ColorStateList tabTitleTextColor, ViewPager pager, PagerAdapter adapter, ViewPager.OnPageChangeListener onPageChangeListener, int startIndex) {
         PagerSlidingTabStrip pagerTabStrip = (PagerSlidingTabStrip) rootView.findViewById(R.id.pager_tabs);
         pagerTabStrip.setTextSize(tabTitleTextSize);
         pagerTabStrip.setTextColor(tabTitleTextColor.getDefaultColor());
